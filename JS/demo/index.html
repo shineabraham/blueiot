@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <link rel="stylesheet" href="./css/bootstrap/css/bootstrap.min.css" type="text/css">
+    <script src="./js/jquery.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="../websocket api/md5.min.js"></script>
+    <script type="text/javascript" src="../websocket api/reconnecting-websocket.js"></script>
+    <script type="text/javascript" src="../websocket api/localsense_websocket_api.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript" src="./js/tool/aes/salt_config.js"></script>
+    <script type="text/javascript" src="./js/tool/aes/aes.js"></script>
+    <script type="text/javascript" src="./js/tool/aes/pad-zeropadding.js"></script>
+	<script type="text/javascript" src="./js/tool/aes/config.js"></script>	
+    <script type="text/javascript" src="./js/tool/aes/crypto.js"></script>
+    <script type="text/javascript" src="./js/jquery.SuperSlide.js"></script>
+    <link rel="stylesheet" href="./css/tab-style.css" type="text/css">
+    <title>test ws</title>
+    <style>
+        .textarea_show {
+            height: 100%;
+            width: 49%;
+        }
+        
+        .legend_show {
+            display: block;
+            width: inherit;
+            padding: 0;
+            margin-bottom: 0px;
+            font-size: 16px;
+            line-height: inherit;
+            color: #333;
+            border: 0;
+        }
+        
+        .fieldset_show {
+            margin-top: 10px;
+            padding: .04em .625em .75em;
+            border: 1px solid silver;
+        }
+        
+        .label_title {
+            float: left;
+            margin-right: 8px;
+            line-height: 33px;
+            font-size: 18px;
+        }
+        
+        .host_port {
+            width: 220px;
+            float: left;
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        .container {
+            width: 98%;
+        }
+        
+        .btns {
+            margin-top: 10px;
+        }
+        
+        .sp {
+            color: red;
+        }
+        
+        .btn {
+            width: 90px;
+            height: 30px;
+            font-size: 12px;
+            line-height: 30px;
+            padding: 0px;
+        }
+        
+        .tip {
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="title" style="text-align: center;height:50px;line-height:50px; border-bottom: 1px solid #eee; margin-bottom: 4px; font-size: 25px;">
+        LocalSense Websocket interface Debugging Tool2.2
+    </div>
+    <div class="container">
+        <div style="margin:10px 0;height: 30px;">
+            <label for="serverip" class="label_title">Please input the server address</label>
+            <input type="text" class="form-control host_port" placeholder="Server IP" value="localhost:48300" id="serverip">
+            <label for="serverip" class="label_title">Account</label>
+            <input type="text" class="form-control host_port" placeholder="Account" value="admin" id="username">
+            <label for="serverip" class="label_title">Password</label>
+            <input type="text" class="form-control host_port" placeholder="Password" value="" id="password">
+            <button class="btn btn-primary" id="connetbtn" type="button" onclick="ToggleBasicClicked()">Connect</button>
+            <button class="btn btn-primary" type="button" onclick="CloseWebsocket()">Disconnect</button>
+            <button class="btn btn-primary" type="button" onclick="ClearShowInfo()">Clear screen</button>
+            <button class="btn btn-primary" id="export_btn" type="button" onclick="dataToTxt()" style="display: none">Export</button>
+        </div>
+        <form style="margin:10px 0;height: 30px" class="form-inline" role="form">
+            <input type="text" class="form-control" placeholder="Data subscription filter" id="Rss_content">
+            <button class="btn btn-primary" type="button" onclick="RssTagClicked()" id="ConnectBtn">By tag</button>
+            <button class="btn btn-primary" type="button" onclick="RssGroupClicked()" id="CloseBtn">By group</button>
+            <button class="btn btn-primary" type="button" onclick="RssMapClicked()" id="ClearBtn">By layer</button>
+            <button class="btn btn-primary" type="button" onclick="NoFiliter()" id="ClearBtn">No filtering</button>
+            <span class="tip">Multiple conditions separated by ":"</span>
+        </form>
+		<form>
+			<span style="font-weight: 700; font-size: 18px;">TagID is 64 bit or not：</span><input id="tag64Id" type="checkbox"/>
+		</form>
+        <form>
+            <span style="font-weight: 700; font-size: 18px;">Position data output mode：</span>
+            <select id="posOutPutOption">
+                <option value="XY" selected="selected">Output only XY plane coordinates (Default)）</option>
+				<option value="GEO">Output only GPS coordinates</option>
+                <option value="GLOBAL">Output only global coordinates</option>
+                <option value="XY_GEO">Output both XY plane  and GPS coordinates </option>
+                <option value="XY_GLOBAL">Output both XY plane and global coordinates </option>
+            </select>
+        </form>
+        <!-- <div style="height: 30px">
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('eefence',true)">Enable electronic fence</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('eefence',false)">Disable electronic fence</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('noaccompany',true)">Enable unaccompanied alarm</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('noaccompany',false)">Disable unaccompanied alarm</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('arraign',true)">打开提押告警</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('arraign',false)">关闭提押告警</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('rollcall',true)">Enable roll call task</button>
+            <button class="btn btn-primary" type="button" onclick="SwitchBtnClick('rollcall',false)">Disable roll call task</button>
+        </div> -->
+        <fieldset class='fieldset_show'>
+            <legend class='legend_show'>Tag related instructions</legend>
+            <span>Tag ID</span>
+            <select id="filter_tag" style="min-width:100px" onchange="FilterTag()">
+                <option value="" selected></option>
+            </select>
+            <button class="btn btn-primary" type="button" onclick="VedioOpenBtnClick()">Video linkage</button>
+            <button class="btn btn-primary" type="button" onclick="VedioCloseBtnClick()">Disable video</button>
+            <!-- <button class="btn btn-primary" type="button" onclick="WithdrawUpdateBtnClick()">Alarm Removal Temporary </button> -->
+            <button class="btn btn-primary" type="button" onclick="TagShakeBuzzBtnClick()">Tag vibration&beep</button>
+        </fieldset>
+        <div class="tabox">
+            <div class="hd">
+                <ul>
+                    <li class="on common_li">Instructions</li>
+                </ul>
+            </div>
+            <div class="bd">
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_command' class='textarea_show1'></textarea>
+            </div>
+        </div>
+        <div class="tabox tb2">
+            <div class="hd">
+                <ul>
+                    <li class="on common_li">Location real-time data</li>
+                    <li class="on common_li">Alarm real-time data</li>
+                    <li class="on common_li">Regional out/in message</li>
+                    <li class="on common_li">Roll call regional statistics</li>
+                    <li class="on common_li">Data update notification</li>
+                    <li class="on common_li">Other sensor data</li>
+                    <li class="on common_li">Online tag statistics</li>
+                    <li class="on common_li">Anchor data</li>
+                    <li class="on common_li">Video linkage</li>
+                    <li class="on common_li">Instructions response</li>
+                </ul>
+            </div>
+            <div class="bd">
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_tag_pos' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_gao_jing' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_area_info' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_dm_data' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_modfiy_data' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_append_info' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_person_info' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_base_state' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_video_state' class='textarea_show'></textarea>
+                <textarea style="float: left; width: 100%; height:80%; resize: none; overflow:auto" id='show_btns_state' class='textarea_show'></textarea>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        jQuery(".tabox").slide({
+            delayTime: 0
+        });
+    </script>
+</body>
+
+</html>
